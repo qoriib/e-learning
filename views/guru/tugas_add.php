@@ -1,0 +1,84 @@
+<?php
+session_start();
+if($_SESSION['role'] != 'guru'){
+    header("Location: ../../index.php");
+    exit();
+}
+
+include "../../config.php";
+$id_guru = $_SESSION['id'];
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Buat Tugas</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+
+<?php include "sidebar.php"; ?>
+<div class="content">
+<?php include "header.php"; ?>
+
+<h2>Buat Tugas Baru</h2>
+
+<div class="card">
+
+<form action="tugas_add_process.php" method="POST" enctype="multipart/form-data">
+
+    <label>Kelas</label>
+    <select name="kelas" required>
+        <option value="">-- Pilih Kelas --</option>
+        <?php
+        $kelas = mysqli_query($conn,
+        "SELECT DISTINCT kelas.id, kelas.nama_kelas 
+         FROM roster
+         JOIN kelas ON roster.id_kelas = kelas.id
+         WHERE roster.id_guru = '$id_guru'
+         ORDER BY kelas.nama_kelas ASC");
+
+        while($k = mysqli_fetch_assoc($kelas)){
+            echo "<option value='{$k['id']}'>{$k['nama_kelas']}</option>";
+        }
+        ?>
+    </select>
+
+    <label>Mapel</label>
+    <select name="mapel" required>
+        <option value="">-- Pilih Mapel --</option>
+        <?php
+        $mapel = mysqli_query($conn,
+        "SELECT DISTINCT mapel.id, mapel.nama_mapel 
+         FROM roster
+         JOIN mapel ON roster.id_mapel = mapel.id
+         WHERE roster.id_guru = '$id_guru'
+         ORDER BY mapel.nama_mapel ASC");
+
+        while($m = mysqli_fetch_assoc($mapel)){
+            echo "<option value='{$m['id']}'>{$m['nama_mapel']}</option>";
+        }
+        ?>
+    </select>
+
+    <label>Judul Tugas</label>
+    <input type="text" name="judul" required>
+
+    <label>Deskripsi</label>
+    <textarea name="deskripsi"></textarea>
+
+    <label>File (opsional)</label>
+    <input type="file" name="file">
+
+    <label>Deadline</label>
+    <input type="datetime-local" name="deadline" required>
+
+    <button class="btn">Simpan Tugas</button>
+</form>
+
+</div>
+
+</div>
+
+</body>
+</html>

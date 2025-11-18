@@ -1,0 +1,24 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Environment / credentials
+.env
+
+# Logs
+*.log
+
+# Dependencies / vendors
+vendor/
+node_modules/
+
+# Uploaded files (keep directory, ignore contents)
+uploads/*
+!uploads/.gitkeep
+
+# Cache / temp
+tmp/
+*.cache
+*.tmp
