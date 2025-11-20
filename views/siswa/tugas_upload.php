@@ -6,9 +6,15 @@ if($_SESSION['role'] != 'siswa'){
 }
 
 include "../../config.php";
+include "../../helpers/auth_helper.php";
 
 $id_user = $_SESSION['id'];
 $id_tugas = $_GET['id'];
+$id_siswa = getSiswaId($conn);
+if(!$id_siswa){
+    header("Location: ../../index.php");
+    exit();
+}
 
 // ambil info siswa
 $sq = mysqli_query($conn,
@@ -23,6 +29,10 @@ $siswa = mysqli_fetch_assoc($sq);
 // ambil info tugas
 $tugas = mysqli_fetch_assoc(mysqli_query($conn,
 "SELECT * FROM tugas WHERE id='$id_tugas'"));
+if(!$tugas){
+    header("Location: tugas.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>

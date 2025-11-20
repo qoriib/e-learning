@@ -6,8 +6,14 @@ if($_SESSION['role'] != 'siswa'){
 }
 
 include "../../config.php";
+include "../../helpers/auth_helper.php";
 
 $id_user = $_SESSION['id'];
+$id_siswa = getSiswaId($conn);
+if(!$id_siswa){
+    header("Location: ../../index.php");
+    exit();
+}
 
 // Ambil data siswa + kelas
 $q = mysqli_query($conn,
@@ -58,8 +64,8 @@ $q2 = mysqli_query($conn,
  FROM materi
  JOIN mapel ON materi.id_mapel = mapel.id
  JOIN guru ON materi.id_guru = guru.id
- JOIN roster ON roster.id_mapel = materi.id_mapel AND roster.id_guru = materi.id_guru
- WHERE roster.id_kelas = '$id_kelas'
+ JOIN materi_kelas ON materi_kelas.id_materi = materi.id
+ WHERE materi_kelas.id_kelas = '$id_kelas'
  ORDER BY materi.tanggal_upload DESC");
 
 while($d = mysqli_fetch_assoc($q2)){

@@ -6,9 +6,15 @@ if($_SESSION['role'] != 'siswa'){
 }
 
 include "../../config.php";
+include "../../helpers/auth_helper.php";
 
 $id_user   = $_SESSION['id'];
 $username  = $_SESSION['username'];
+$id_siswa = getSiswaId($conn);
+if(!$id_siswa){
+    header("Location: ../../index.php");
+    exit();
+}
 
 // ambil info siswa dari tabel siswa
 $q = mysqli_query($conn, 

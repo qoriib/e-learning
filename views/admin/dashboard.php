@@ -69,153 +69,136 @@ include "../../config.php";
 
 <br><br>
 
-<!-- ======================= GRAFIK ABSENSI ======================= -->
-<h3>Grafik Absensi Siswa</h3>
-<canvas id="absensiChart"></canvas>
-
 <?php
-$q_absen = mysqli_query($conn,
+$absen_guru_label = [];
+$absen_guru_total = [];
+$absen_siswa_label = [];
+$absen_siswa_total = [];
+
+$q_abs_guru = mysqli_query($conn,
+"SELECT status, COUNT(*) AS total
+ FROM absensi
+ WHERE jenis_absen='guru'
+ GROUP BY status");
+
+while($row = mysqli_fetch_assoc($q_abs_guru)){
+    $absen_guru_label[] = $row['status'];
+    $absen_guru_total[] = $row['total'];
+}
+
+$absen_guru_label = $absen_guru_label ?: ['Belum Ada Data'];
+$absen_guru_total = $absen_guru_total ?: [0];
+
+$q_abs_siswa = mysqli_query($conn,
 "SELECT status, COUNT(*) AS total
  FROM absensi
  WHERE jenis_absen='siswa'
  GROUP BY status");
 
-$absensi_label = [];
-$absensi_total = [];
-
-while($r = mysqli_fetch_assoc($q_absen)){
-    $absensi_label[] = $r['status'];
-    $absensi_total[] = $r['total'];
+while($row = mysqli_fetch_assoc($q_abs_siswa)){
+    $absen_siswa_label[] = $row['status'];
+    $absen_siswa_total[] = $row['total'];
 }
+
+$absen_siswa_label = $absen_siswa_label ?: ['Belum Ada Data'];
+$absen_siswa_total = $absen_siswa_total ?: [0];
 ?>
 
+<div class="chart-grid">
+    <div class="card">
+        <h3>Absensi Guru</h3>
+        <canvas id="absensiGuruChart"></canvas>
+    </div>
+    <div class="card">
+        <h3>Absensi Siswa</h3>
+        <canvas id="absensiSiswaChart"></canvas>
+    </div>
+</div>
+
+<div class="card calendar-card">
+    <h3>Kalender & Waktu</h3>
+    <div class="calendar-header">
+        <div>
+            <div id="calendarDate" class="calendar-date"></div>
+            <div id="calendarClock" class="calendar-clock"></div>
+        </div>
+    </div>
+    <div id="calendarGrid" class="calendar-grid"></div>
+</div>
+
 <script>
-var ctx = document.getElementById("absensiChart").getContext("2d");
-new Chart(ctx, {
-    type: "pie",
+const guruChart = document.getElementById("absensiGuruChart").getContext("2d");
+new Chart(guruChart, {
+    type: "doughnut",
     data: {
-        labels: <?= json_encode($absensi_label); ?>,
+        labels: <?= json_encode($absen_guru_label); ?>,
         datasets: [{
-            data: <?= json_encode($absensi_total); ?>,
-            backgroundColor: ["#2ecc71","#3498db","#f1c40f","#e74c3c"]
+            data: <?= json_encode($absen_guru_total); ?>,
+            backgroundColor: ["#2ecc71","#f1c40f","#e67e22","#e74c3c"]
         }]
+    },
+    options: {
+        plugins: { legend: { position: "bottom" } }
     }
 });
-</script>
 
-<br><br>
+const siswaChart = document.getElementById("absensiSiswaChart").getContext("2d");
+new Chart(siswaChart, {
+    type: "doughnut",
+    data: {
+        labels: <?= json_encode($absen_siswa_label); ?>,
+        datasets: [{
+            data: <?= json_encode($absen_siswa_total); ?>,
+            backgroundColor: ["#3498db","#9b59b6","#1abc9c","#e74c3c"]
+        }]
+    },
+    options: {
+        plugins: { legend: { position: "bottom" } }
+    }
+});
 
-<!-- ======================= GRAFIK TUGAS ======================= -->
-<h3>Grafik Jumlah Tugas per Mapel</h3>
-<canvas id="tugasChart"></canvas>
+const monthNames = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
-<?php
-$q_tugas = mysqli_query($conn,
-"SELECT mapel.nama_mapel, COUNT(tugas.id) AS total
- FROM tugas
- JOIN mapel ON tugas.id_mapel = mapel.id
- GROUP BY tugas.id_mapel");
+function buildCalendar(){
+    const grid = document.getElementById("calendarGrid");
+    const dateText = document.getElementById("calendarDate");
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = now.getDate();
 
-$tugas_label = [];
-$tugas_total = [];
+    dateText.textContent = `${today} ${monthNames[month]} ${year}`;
 
-while($t = mysqli_fetch_assoc($q_tugas)){
-    $tugas_label[] = $t['nama_mapel'];
-    $tugas_total[] = $t['total'];
+    const weekdays = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
+    let html = '<div class="calendar-row calendar-header-row">';
+    weekdays.forEach(day => html += `<div>${day}</div>`);
+    html += "</div><div class='calendar-row'>";
+
+    for(let i=0;i<firstDay;i++){
+        html += "<div class='empty'></div>";
+    }
+    for(let d=1; d<=daysInMonth; d++){
+        const isToday = d === today;
+        html += `<div class="${isToday ? 'today' : ''}">${d}</div>`;
+        if((d + firstDay) % 7 === 0){
+            html += "</div><div class='calendar-row'>";
+        }
+    }
+    html += "</div>";
+    grid.innerHTML = html;
 }
-?>
 
-<script>
-var ctx2 = document.getElementById("tugasChart").getContext("2d");
-new Chart(ctx2, {
-    type: "bar",
-    data: {
-        labels: <?= json_encode($tugas_label); ?>,
-        datasets: [{
-            label: "Jumlah Tugas",
-            data: <?= json_encode($tugas_total); ?>,
-            backgroundColor: "#3498db"
-        }]
-    }
-});
-</script>
-
-<br><br>
-
-<!-- ======================= GRAFIK MATERI ======================= -->
-<h3>Grafik Jumlah Materi per Mapel</h3>
-<canvas id="materiChart"></canvas>
-
-<?php
-$q_materi = mysqli_query($conn,
-"SELECT mapel.nama_mapel, COUNT(materi.id) AS total
- FROM materi
- JOIN mapel ON materi.id_mapel = mapel.id
- GROUP BY materi.id_mapel");
-
-$materi_label = [];
-$materi_total = [];
-
-while($m = mysqli_fetch_assoc($q_materi)){
-    $materi_label[] = $m['nama_mapel'];
-    $materi_total[] = $m['total'];
+function updateClock(){
+    const clockText = document.getElementById("calendarClock");
+    clockText.textContent = new Date().toLocaleTimeString("id-ID");
 }
-?>
 
-<script>
-var ctx3 = document.getElementById("materiChart").getContext("2d");
-new Chart(ctx3, {
-    type: "bar",
-    data: {
-        labels: <?= json_encode($materi_label); ?>,
-        datasets: [{
-            label: "Jumlah Materi",
-            data: <?= json_encode($materi_total); ?>,
-            backgroundColor: "#9b59b6"
-        }]
-    }
-});
-</script>
-
-<br><br>
-
-<!-- ======================= GRAFIK NILAI ======================= -->
-<h3>Grafik Rata-Rata Nilai per Mapel</h3>
-<canvas id="nilaiChart"></canvas>
-
-<?php
-$q_nilai = mysqli_query($conn,
-"SELECT mapel.nama_mapel, AVG(pengumpulan_tugas.nilai) AS rata
- FROM pengumpulan_tugas
- JOIN tugas ON tugas.id = pengumpulan_tugas.id_tugas
- JOIN mapel ON mapel.id = tugas.id_mapel
- WHERE pengumpulan_tugas.nilai IS NOT NULL
- GROUP BY tugas.id_mapel");
-
-$nilai_label = [];
-$nilai_total = [];
-
-while($n = mysqli_fetch_assoc($q_nilai)){
-    $nilai_label[] = $n['nama_mapel'];
-    $nilai_total[] = round($n['rata']);
-}
-?>
-
-<script>
-var ctx4 = document.getElementById("nilaiChart").getContext("2d");
-new Chart(ctx4, {
-    type: "line",
-    data: {
-        labels: <?= json_encode($nilai_label); ?>,
-        datasets: [{
-            label: "Rata-rata Nilai",
-            data: <?= json_encode($nilai_total); ?>,
-            borderColor: "#e74c3c",
-            borderWidth: 3,
-            fill: false
-        }]
-    }
-});
+buildCalendar();
+updateClock();
+setInterval(updateClock, 1000);
+setInterval(buildCalendar, 60000);
 </script>
 
 </div>

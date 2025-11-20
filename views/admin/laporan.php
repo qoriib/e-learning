@@ -48,7 +48,7 @@ while($d = mysqli_fetch_assoc($data)){
         <td><?= $no++; ?></td>
         <td><?= $d['nama_lengkap']; ?></td>
         <td><?= $d['judul_laporan']; ?></td>
-        <td><a href="<?= $d['file_path']; ?>" target="_blank">Download</a></td>
+        <td><a href="../../<?= $d['file_path']; ?>" target="_blank">Download</a></td>
         <td><?= $d['status']; ?></td>
         <td><?= $d['tanggal_upload']; ?></td>
         <td>

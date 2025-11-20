@@ -6,8 +6,13 @@ if($_SESSION['role'] != 'guru'){
 }
 
 include "../../config.php";
+include "../../helpers/auth_helper.php";
 
-$id_guru = $_SESSION['id'];
+$id_guru = getGuruId($conn);
+if(!$id_guru){
+    header("Location: ../../index.php");
+    exit();
+}
 
 $jadwal = mysqli_query($conn,
 "SELECT roster.*, kelas.nama_kelas, mapel.nama_mapel

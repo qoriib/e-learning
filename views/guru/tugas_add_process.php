@@ -2,13 +2,31 @@
 session_start();
 include "../../config.php";
 include "../../log.php";
+include "../../helpers/auth_helper.php";
 
-$id_guru  = $_SESSION['id'];
-$id_kelas = $_POST['kelas'];
-$id_mapel = $_POST['mapel'];
+$id_guru  = getGuruId($conn);
+if(!$id_guru){
+    header("Location: ../../index.php");
+    exit();
+}
+$id_kelas = intval($_POST['kelas']);
+$id_mapel = intval($_POST['mapel']);
 $judul    = $_POST['judul'];
 $desk     = $_POST['deskripsi'];
-$deadline = $_POST['deadline'];
+$deadline_input = $_POST['deadline'];
+$deadline = date('Y-m-d H:i:s', strtotime($deadline_input));
+
+$cekRoster = mysqli_query($conn,
+"SELECT id FROM roster
+ WHERE id_guru='$id_guru'
+   AND id_kelas='$id_kelas'
+   AND id_mapel='$id_mapel'
+ LIMIT 1");
+
+if(mysqli_num_rows($cekRoster) == 0){
+    header("Location: tugas_add.php?error=roster");
+    exit();
+}
 
 $file_path = NULL;
 
@@ -18,7 +36,8 @@ if(!empty($_FILES['file']['name'])){
     $tmp = $_FILES['file']['tmp_name'];
     $folder = "../../uploads/tugas/";
     if(!is_dir($folder)) mkdir($folder, 0777, true);
-    $file_path = $folder . time() . "_" . $nama_file;
+    $clean_name = preg_replace("/[^A-Za-z0-9._-]/", "_", $nama_file);
+    $file_path = $folder . time() . "_" . $clean_name;
     move_uploaded_file($tmp, $file_path);
 }
 

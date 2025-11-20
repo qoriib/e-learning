@@ -6,6 +6,13 @@ if($_SESSION['role'] != 'guru'){
 }
 
 include "../../config.php";
+$id_user = $_SESSION['id'];
+include "../../helpers/auth_helper.php";
+$id_guru = getGuruId($conn);
+if(!$id_guru){
+    header("Location: ../../index.php");
+    exit();
+}
 
 $tanggal = date("Y-m-d");
 
@@ -34,7 +41,12 @@ $id_kelas = isset($_GET['kelas']) ? $_GET['kelas'] : "";
             <select name="kelas" onchange="this.form.submit()">
                 <option value="">-- Pilih Kelas --</option>
                 <?php
-                $kelas_q = mysqli_query($conn, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
+                $kelas_q = mysqli_query($conn,
+                "SELECT DISTINCT kelas.*
+                 FROM roster
+                 JOIN kelas ON roster.id_kelas = kelas.id
+                 WHERE roster.id_guru = '$id_guru'
+                 ORDER BY kelas.nama_kelas ASC");
                 while($k = mysqli_fetch_assoc($kelas_q)){
                     $sel = ($id_kelas == $k['id']) ? "selected" : "";
                     echo "<option value='".$k['id']."' $sel>".$k['nama_kelas']."</option>";

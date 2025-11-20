@@ -14,10 +14,6 @@ Thumbs.db
 vendor/
 node_modules/
 
-# Uploaded files (keep directory, ignore contents)
-uploads/*
-!uploads/.gitkeep
-
 # Cache / temp
 tmp/
 *.cache

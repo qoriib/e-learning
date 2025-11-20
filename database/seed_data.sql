@@ -80,6 +80,12 @@ INSERT INTO materi (id, id_guru, id_mapel, judul_materi, deskripsi, file_path, t
   (2, 4, 5, 'Teks Deskriptif', 'Contoh teks deskriptif dan analisis struktur', 'uploads/materi/teks-deskriptif.pdf', NOW()),
   (3, 3, 4, 'Ekosistem dan Rantai Makanan', 'Materi ekosistem, rantai makanan, dan jaring-jaring makanan', 'uploads/materi/ekosistem.pdf', NOW());
 
+-- Relasi materi ke kelas
+INSERT INTO materi_kelas (id, id_materi, id_kelas) VALUES
+  (1, 1, 1),
+  (2, 2, 4),
+  (3, 3, 3);
+
 -- Tugas (sesuai kolom tugas)
 INSERT INTO tugas (id, id_guru, id_mapel, id_kelas, judul_tugas, deskripsi, file_path, deadline, tanggal_buat) VALUES
   (1, 1, 1, 1, 'PR Aljabar', 'Kerjakan soal 1-10 pada buku paket', 'uploads/tugas/pr-aljabar.pdf', DATE_ADD(NOW(), INTERVAL 7 DAY), NOW()),

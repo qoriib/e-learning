@@ -6,7 +6,12 @@ if($_SESSION['role'] != 'guru'){
 }
 
 include "../../config.php";
-$id_guru = $_SESSION['id'];
+include "../../helpers/auth_helper.php";
+$id_guru = getGuruId($conn);
+if(!$id_guru){
+    header("Location: ../../index.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -20,6 +25,10 @@ $id_guru = $_SESSION['id'];
 <?php include "sidebar.php"; ?>
 <div class="content">
 <?php include "header.php"; ?>
+
+<?php if(isset($_GET['error']) && $_GET['error'] == 'roster'): ?>
+<div class="alert error">Kombinasi kelas dan mapel tidak valid untuk akun Anda.</div>
+<?php endif; ?>
 
 <h2>Buat Tugas Baru</h2>
 

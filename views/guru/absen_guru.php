@@ -3,7 +3,12 @@ session_start();
 if($_SESSION['role'] != 'guru'){ header("Location: ../../index.php"); exit(); }
 
 include "../../config.php";
-$id_guru = $_SESSION['id'];
+include "../../helpers/auth_helper.php";
+$id_guru = getGuruId($conn);
+if(!$id_guru){
+    header("Location: ../../index.php");
+    exit();
+}
 $tanggal = date("Y-m-d");
 
 // cek apakah sudah absen

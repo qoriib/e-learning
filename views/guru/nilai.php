@@ -6,7 +6,12 @@ if($_SESSION['role'] != 'guru'){
 }
 
 include "../../config.php";
-$id_guru = $_SESSION['id'];
+include "../../helpers/auth_helper.php";
+$id_guru = getGuruId($conn);
+if(!$id_guru){
+    header("Location: ../../index.php");
+    exit();
+}
 
 // ambil filter kelas & mapel
 $id_kelas = isset($_GET['kelas']) ? $_GET['kelas'] : "";
@@ -74,9 +79,8 @@ $id_mapel = isset($_GET['mapel']) ? $_GET['mapel'] : "";
 <?php if($id_kelas != "" && $id_mapel != ""): ?>
 
 <!-- TOMBOL EXPORT -->
-<div class="card" style="margin-top:10px;">
+<div class="card export-card">
     <a class="btn" href="nilai_export_excel.php?kelas=<?= $id_kelas ?>&mapel=<?= $id_mapel ?>">Download Excel</a>
-    <a class="btn" href="nilai_export_pdf.php?kelas=<?= $id_kelas ?>&mapel=<?= $id_mapel ?>" target="_blank">Download PDF</a>
     <a class="btn" href="nilai_export_csv.php?kelas=<?= $id_kelas ?>&mapel=<?= $id_mapel ?>">Download CSV</a>
 </div>
 
@@ -97,14 +101,28 @@ $no = 1;
 
 $q = mysqli_query($conn,
 "SELECT siswa.id AS id_siswa, siswa.nis, siswa.nama_lengkap,
-        pengumpulan_tugas.nilai, pengumpulan_tugas.catatan_nilai
+        (
+            SELECT pt.nilai
+            FROM pengumpulan_tugas pt
+            JOIN tugas t2 ON t2.id = pt.id_tugas
+            WHERE pt.id_siswa = siswa.id
+              AND t2.id_mapel = '$id_mapel'
+              AND t2.id_kelas = '$id_kelas'
+            ORDER BY pt.tanggal_kumpul DESC
+            LIMIT 1
+        ) AS nilai,
+        (
+            SELECT pt.catatan_nilai
+            FROM pengumpulan_tugas pt
+            JOIN tugas t2 ON t2.id = pt.id_tugas
+            WHERE pt.id_siswa = siswa.id
+              AND t2.id_mapel = '$id_mapel'
+              AND t2.id_kelas = '$id_kelas'
+            ORDER BY pt.tanggal_kumpul DESC
+            LIMIT 1
+        ) AS catatan_nilai
  FROM siswa
- LEFT JOIN pengumpulan_tugas 
-    ON pengumpulan_tugas.id_siswa = siswa.id
- LEFT JOIN tugas 
-    ON tugas.id = pengumpulan_tugas.id_tugas
  WHERE siswa.id_kelas = '$id_kelas'
-   AND tugas.id_mapel = '$id_mapel'
  ORDER BY siswa.nama_lengkap ASC");
 
 while($d = mysqli_fetch_assoc($q)){

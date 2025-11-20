@@ -29,37 +29,14 @@ if(mysqli_num_rows($cek) == 0){
     exit();
 }
 
-// ambil info kelas & mapel
 $kelas = mysqli_fetch_assoc(mysqli_query($conn, "SELECT nama_kelas FROM kelas WHERE id='$id_kelas'"));
 $mapel = mysqli_fetch_assoc(mysqli_query($conn, "SELECT nama_mapel FROM mapel WHERE id='$id_mapel'"));
 
-// nama file otomatis
-$filename = "Rekap_Nilai_Kelas_{$kelas['nama_kelas']}_Mapel_{$mapel['nama_mapel']}.csv";
-
-// header agar browser download file
-header("Content-Type: text/csv; charset=UTF-8");
+$filename = "Rekap_Nilai_{$kelas['nama_kelas']}_{$mapel['nama_mapel']}.xls";
+header("Content-Type: application/vnd.ms-excel");
 header("Content-Disposition: attachment; filename=\"$filename\"");
 
-// buka output
-$output = fopen("php://output", "w");
-
-// -------------------------------------------------------
-// 1. TULIS JUDUL
-// -------------------------------------------------------
-fputcsv($output, ["REKAP NILAI SISWA"]);
-fputcsv($output, ["Kelas", $kelas['nama_kelas']]);
-fputcsv($output, ["Mapel", $mapel['nama_mapel']]);
-fputcsv($output, []); // baris kosong
-
-// -------------------------------------------------------
-// 2. HEADER TABEL
-// -------------------------------------------------------
-fputcsv($output, ["NIS", "Nama Siswa", "Nilai", "Catatan"]);
-
-// -------------------------------------------------------
-// 3. AMBIL DATA SISWA + NILAI
-// -------------------------------------------------------
-$q = mysqli_query($conn,
+$data = mysqli_query($conn,
 "SELECT siswa.nis, siswa.nama_lengkap,
         (
             SELECT pt.nilai
@@ -85,16 +62,22 @@ $q = mysqli_query($conn,
  WHERE siswa.id_kelas = '$id_kelas'
  ORDER BY siswa.nama_lengkap ASC");
 
-// -------------------------------------------------------
-// 4. TULIS DATA PER BARIS
-// -------------------------------------------------------
-while($d = mysqli_fetch_assoc($q)){
-    $nilai = $d['nilai'] === null ? "-" : $d['nilai'];
-    $catatan = $d['catatan'] ? $d['catatan'] : "-";
+echo "<table border='1'>";
+echo "<tr><th colspan='4'>REKAP NILAI SISWA</th></tr>";
+echo "<tr><td>Kelas</td><td colspan='3'>".htmlspecialchars($kelas['nama_kelas'])."</td></tr>";
+echo "<tr><td>Mapel</td><td colspan='3'>".htmlspecialchars($mapel['nama_mapel'])."</td></tr>";
+echo "<tr><td colspan='4'></td></tr>";
+echo "<tr><th>NIS</th><th>Nama Siswa</th><th>Nilai</th><th>Catatan</th></tr>";
 
-    fputcsv($output, [$d['nis'], $d['nama_lengkap'], $nilai, $catatan]);
+while($row = mysqli_fetch_assoc($data)){
+    $nilai = $row['nilai'] === null ? '-' : $row['nilai'];
+    $catatan = $row['catatan'] ? $row['catatan'] : '-';
+    echo "<tr>";
+    echo "<td>".htmlspecialchars($row['nis'])."</td>";
+    echo "<td>".htmlspecialchars($row['nama_lengkap'])."</td>";
+    echo "<td>{$nilai}</td>";
+    echo "<td>".htmlspecialchars($catatan)."</td>";
+    echo "</tr>";
 }
-
-fclose($output);
+echo "</table>";
 exit();
-?>

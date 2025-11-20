@@ -20,6 +20,32 @@ include "../../config.php";
 <div class="content">
 <?php include "header.php"; ?>
 
+<?php
+$importMessage = "";
+$importClass = "success";
+if(isset($_GET['import'])){
+    if($_GET['import'] == '1'){
+        $added = intval($_GET['added'] ?? 0);
+        $skipped = intval($_GET['skipped'] ?? 0);
+        $importMessage = "Import selesai. $added mapel ditambahkan, $skipped baris dilewati.";
+        $importClass = "success";
+    } else {
+        $reason = $_GET['msg'] ?? 'gagal';
+        $text = "Import gagal.";
+        if($reason == 'no_file'){ $text = "Upload gagal: file belum dipilih."; }
+        if($reason == 'format'){ $text = "Upload gagal: format file tidak valid, gunakan template .xlsx."; }
+        $importMessage = $text;
+        $importClass = "error";
+    }
+}
+?>
+
+<?php if($importMessage): ?>
+<div class="alert <?= $importClass; ?>">
+    <?= $importMessage; ?>
+</div>
+<?php endif; ?>
+
 <div class="card">
     <h2>Data Mata Pelajaran</h2>
 
@@ -49,6 +75,16 @@ include "../../config.php";
         <?php } ?>
     </table>
 
+</div>
+
+<div class="card import-card">
+    <h3>Import Mapel via Excel</h3>
+    <p>Gunakan template berikut untuk menambahkan banyak mapel sekaligus.</p>
+    <a class="btn" href="../../assets/templates/mapel_template.xlsx" download>Download Template Mapel</a>
+    <form class="import-form" action="mapel_import_process.php" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file_excel" accept=".xlsx" required>
+        <button type="submit" class="btn">Upload File</button>
+    </form>
 </div>
 
 </div>

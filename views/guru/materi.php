@@ -6,8 +6,13 @@ if($_SESSION['role'] != 'guru'){
 }
 
 include "../../config.php";
+include "../../helpers/auth_helper.php";
 
-$id_guru = $_SESSION['id'];
+$id_guru = getGuruId($conn);
+if(!$id_guru){
+    header("Location: ../../index.php");
+    exit();
+}
 
 ?>
 
@@ -34,6 +39,7 @@ $id_guru = $_SESSION['id'];
     <tr>
         <th>No</th>
         <th>Mapel</th>
+        <th>Kelas</th>
         <th>Judul</th>
         <th>File</th>
         <th>Tanggal Upload</th>
@@ -44,9 +50,11 @@ $id_guru = $_SESSION['id'];
 $no = 1;
 
 $q = mysqli_query($conn, 
-"SELECT materi.*, mapel.nama_mapel 
+"SELECT materi.*, mapel.nama_mapel, kelas.nama_kelas
  FROM materi
  JOIN mapel ON materi.id_mapel = mapel.id
+ LEFT JOIN materi_kelas ON materi_kelas.id_materi = materi.id
+ LEFT JOIN kelas ON kelas.id = materi_kelas.id_kelas
  WHERE materi.id_guru = '$id_guru'
  ORDER BY materi.id DESC");
 
@@ -55,8 +63,9 @@ while($d = mysqli_fetch_assoc($q)){
     <tr>
         <td><?= $no++; ?></td>
         <td><?= $d['nama_mapel']; ?></td>
+        <td><?= $d['nama_kelas'] ? $d['nama_kelas'] : '-'; ?></td>
         <td><?= $d['judul_materi']; ?></td>
-        <td><a href="<?= $d['file_path']; ?>" target="_blank">Download</a></td>
+        <td><a href="../../<?= $d['file_path']; ?>" target="_blank">Download</a></td>
         <td><?= $d['tanggal_upload']; ?></td>
         <td>
             <a href="materi_delete.php?id=<?= $d['id']; ?>"

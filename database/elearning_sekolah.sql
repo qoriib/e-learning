@@ -122,6 +122,18 @@ CREATE TABLE `materi` (
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `materi_kelas`
+--
+
+CREATE TABLE `materi_kelas` (
+  `id` int(11) NOT NULL,
+  `id_materi` int(11) NOT NULL,
+  `id_kelas` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `pengumpulan_tugas`
 --
 
@@ -262,6 +274,14 @@ ALTER TABLE `materi`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indeks untuk tabel `materi_kelas`
+--
+ALTER TABLE `materi_kelas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_materi` (`id_materi`),
+  ADD KEY `id_kelas` (`id_kelas`);
+
+--
 -- Indeks untuk tabel `pengumpulan_tugas`
 --
 ALTER TABLE `pengumpulan_tugas`
@@ -343,6 +363,12 @@ ALTER TABLE `mapel`
 -- AUTO_INCREMENT untuk tabel `materi`
 --
 ALTER TABLE `materi`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `materi_kelas`
+--
+ALTER TABLE `materi_kelas`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --

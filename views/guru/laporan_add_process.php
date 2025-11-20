@@ -2,15 +2,23 @@
 session_start();
 include "../../config.php";
 include "../../log.php"; // WAJIB ditambahkan agar catat_log berfungsi
+include "../../helpers/auth_helper.php";
 
-$id_guru = $_SESSION['id']; // id user guru
+$id_guru = getGuruId($conn);
+if(!$id_guru){
+    header("Location: ../../index.php");
+    exit();
+}
 $judul   = $_POST['judul'];
 
 $nama_file = $_FILES['file']['name'];
 $lokasi = $_FILES['file']['tmp_name'];
 
 $folder = "../../uploads/laporan/";
-$path = $folder . time() . "_" . $nama_file;
+if(!is_dir($folder)){
+    mkdir($folder, 0777, true);
+}
+$path = $folder . time() . "_" . preg_replace("/[^A-Za-z0-9._-]/", "_", $nama_file);
 
 // upload file
 move_uploaded_file($lokasi, $path);

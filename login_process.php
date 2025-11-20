@@ -27,7 +27,14 @@ if(!password_verify($password, $user['password'])){
 $_SESSION['id'] = $user['id'];
 $_SESSION['role'] = $user['role'];
 $_SESSION['username'] = $user['username'];
+$_SESSION['user_id'] = $user['id']; // simpan id pengguna untuk kebutuhan log
+unset($_SESSION['guru_id'], $_SESSION['siswa_id']);
 
+if($user['role'] == 'guru' && !empty($user['id_guru'])){
+    $_SESSION['guru_id'] = $user['id_guru'];
+} elseif($user['role'] == 'siswa' && !empty($user['id_siswa'])){
+    $_SESSION['siswa_id'] = $user['id_siswa'];
+}
 catat_log($conn, "Login ke sistem");
 
 if($user['role'] == 'admin'){
