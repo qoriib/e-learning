@@ -7,6 +7,7 @@ if($_SESSION['role'] != 'siswa'){
 
 include "../../config.php";
 include "../../helpers/auth_helper.php";
+include "../../helpers/pagination_helper.php";
 
 $id_user = $_SESSION['id'];
 $id_siswa = getSiswaId($conn);
@@ -46,6 +47,16 @@ $siswa = mysqli_fetch_assoc($q);
 
 <h3>Riwayat Absensi</h3>
 
+<?php
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$baseQuery = "SELECT * FROM absensi
+ WHERE id_user = '$id_user'
+   AND jenis_absen = 'siswa'
+ ORDER BY tanggal DESC";
+$pagination = paginate_query($conn, $baseQuery, $page, 30);
+$q_absen = $pagination['result'];
+?>
+
 <table class="tabel">
     <tr>
         <th>No</th>
@@ -55,14 +66,7 @@ $siswa = mysqli_fetch_assoc($q);
     </tr>
 
 <?php
-$no = 1;
-
-$q_absen = mysqli_query($conn,
-"SELECT * FROM absensi
- WHERE id_user = '$id_user'
-   AND jenis_absen = 'siswa'
- ORDER BY tanggal DESC");
-
+$no = $pagination['offset'] + 1;
 while($d = mysqli_fetch_assoc($q_absen)){
 ?>
 <tr>
@@ -74,6 +78,7 @@ while($d = mysqli_fetch_assoc($q_absen)){
 <?php } ?>
 
 </table>
+<?= render_pagination('absensi.php', $pagination); ?>
 </div>
 
 <br>

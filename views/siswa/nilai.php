@@ -7,6 +7,8 @@ if($_SESSION['role'] != 'siswa'){
 
 include "../../config.php";
 include "../../helpers/auth_helper.php";
+include "../../helpers/pagination_helper.php";
+include "../../helpers/file_helper.php";
 
 $id_user = $_SESSION['id'];
 $id_siswa_session = getSiswaId($conn);
@@ -45,6 +47,25 @@ $id_kelas = $siswa['id_kelas'];
 
 <div class="card">
 
+<?php
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$baseQuery = "SELECT 
+    tugas.judul_tugas,
+    tugas.id_mapel,
+    mapel.nama_mapel,
+    pengumpulan_tugas.nilai,
+    pengumpulan_tugas.catatan_nilai,
+    pengumpulan_tugas.file_path,
+    pengumpulan_tugas.tanggal_kumpul
+ FROM pengumpulan_tugas
+ JOIN tugas ON tugas.id = pengumpulan_tugas.id_tugas
+ JOIN mapel ON mapel.id = tugas.id_mapel
+ WHERE pengumpulan_tugas.id_siswa = '$id_siswa'
+ ORDER BY pengumpulan_tugas.tanggal_kumpul DESC";
+$pagination = paginate_query($conn, $baseQuery, $page, 30);
+$q = $pagination['result'];
+?>
+
 <table class="tabel">
     <tr>
         <th>No</th>
@@ -57,25 +78,10 @@ $id_kelas = $siswa['id_kelas'];
     </tr>
 
 <?php
-$no = 1;
-
-$q = mysqli_query($conn,
-"SELECT 
-    tugas.judul_tugas,
-    tugas.id_mapel,
-    mapel.nama_mapel,
-    pengumpulan_tugas.nilai,
-    pengumpulan_tugas.catatan_nilai,
-    pengumpulan_tugas.file_path,
-    pengumpulan_tugas.tanggal_kumpul
- FROM pengumpulan_tugas
- JOIN tugas ON tugas.id = pengumpulan_tugas.id_tugas
- JOIN mapel ON mapel.id = tugas.id_mapel
- WHERE pengumpulan_tugas.id_siswa = '$id_siswa'
- ORDER BY pengumpulan_tugas.tanggal_kumpul DESC"
-);
+$no = $pagination['offset'] + 1;
 
 while($d = mysqli_fetch_assoc($q)){
+$downloadPath = $d['file_path'] ? view_file_href($d['file_path']) : null;
 ?>
 <tr>
     <td><?= $no++; ?></td>
@@ -85,8 +91,8 @@ while($d = mysqli_fetch_assoc($q)){
     <td><?= $d['catatan_nilai'] ? $d['catatan_nilai'] : "-"; ?></td>
 
     <td>
-        <?php if($d['file_path']) { ?>
-            <a href="<?= $d['file_path']; ?>" target="_blank">Lihat File</a>
+        <?php if($downloadPath) { ?>
+            <a href="<?= $downloadPath; ?>" target="_blank">Lihat File</a>
         <?php } else { echo "-"; } ?>
     </td>
 
@@ -102,6 +108,7 @@ while($d = mysqli_fetch_assoc($q)){
 <?php } ?>
 
 </table>
+<?= render_pagination('nilai.php', $pagination); ?>
 
 </div>
 

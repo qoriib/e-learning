@@ -7,6 +7,8 @@ if($_SESSION['role'] != 'guru'){
 
 include "../../config.php";
 include "../../helpers/auth_helper.php";
+include "../../helpers/file_helper.php";
+include "../../helpers/pagination_helper.php";
 $id_guru = getGuruId($conn);
 if(!$id_guru){
     header("Location: ../../index.php");
@@ -32,6 +34,13 @@ if(!$id_guru){
 <a href="laporan_add.php" class="btn">+ Upload Laporan</a>
 <br><br>
 
+<?php
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$baseQuery = "SELECT * FROM laporan WHERE id_guru='$id_guru' ORDER BY id DESC";
+$pagination = paginate_query($conn, $baseQuery, $page, 30);
+$data = $pagination['result'];
+?>
+
 <table class="tabel">
     <tr>
         <th>No</th>
@@ -42,20 +51,20 @@ if(!$id_guru){
     </tr>
 
 <?php
-$no = 1;
-$data = mysqli_query($conn, "SELECT * FROM laporan WHERE id_guru='$id_guru' ORDER BY id DESC");
+$no = $pagination['offset'] + 1;
 while($d = mysqli_fetch_assoc($data)){
 ?>
     <tr>
         <td><?= $no++; ?></td>
         <td><?= $d['judul_laporan']; ?></td>
-        <td><a href="<?= $d['file_path']; ?>" target="_blank">Download</a></td>
+        <td><a href="<?= view_file_href($d['file_path']); ?>" target="_blank">Download</a></td>
         <td><?= $d['status']; ?></td>
         <td><?= $d['tanggal_upload']; ?></td>
     </tr>
 <?php } ?>
 
 </table>
+<?= render_pagination('laporan.php', $pagination); ?>
 
 </div>
 </div>

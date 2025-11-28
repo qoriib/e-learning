@@ -5,6 +5,7 @@ if($_SESSION['role'] != 'admin'){
     exit();
 }
 include "../../config.php";
+include "../../helpers/pagination_helper.php";
 ?>
 
 <!DOCTYPE html>
@@ -26,6 +27,13 @@ include "../../config.php";
     <a href="tahun_ajaran_add.php" class="btn">+ Tambah Tahun Ajaran</a>
     <br><br>
 
+    <?php
+    $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+    $baseQuery = "SELECT * FROM tahun_ajaran ORDER BY id DESC";
+    $pagination = paginate_query($conn, $baseQuery, $page, 30);
+    $data = $pagination['result'];
+    ?>
+
     <table class="tabel">
         <tr>
             <th>No</th>
@@ -36,8 +44,7 @@ include "../../config.php";
         </tr>
 
         <?php
-        $no = 1;
-        $data = mysqli_query($conn, "SELECT * FROM tahun_ajaran ORDER BY id DESC");
+        $no = $pagination['offset'] + 1;
         while($d = mysqli_fetch_assoc($data)){
         ?>
         <tr>
@@ -59,6 +66,7 @@ include "../../config.php";
         <?php } ?>
 
     </table>
+    <?= render_pagination('tahun_ajaran.php', $pagination); ?>
 
 </div>
 

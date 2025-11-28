@@ -5,6 +5,7 @@ if($_SESSION['role'] != 'admin'){
     exit();
 }
 include "../../config.php";
+include "../../helpers/pagination_helper.php";
 ?>
 
 <!DOCTYPE html>
@@ -45,11 +46,49 @@ if(isset($_GET['import'])){
 </div>
 <?php endif; ?>
 
+<?php
+$search = trim($_GET['q'] ?? '');
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$where = "";
+if($search !== ''){
+    $like = mysqli_real_escape_string($conn, "%".$search."%");
+    $where = "WHERE siswa.nama_lengkap LIKE '$like' OR siswa.nis LIKE '$like'";
+}
+$baseQuery = "SELECT siswa.*, kelas.nama_kelas, users.username 
+              FROM siswa 
+              JOIN kelas ON siswa.id_kelas = kelas.id 
+              LEFT JOIN users ON users.id_siswa = siswa.id
+              $where
+              ORDER BY siswa.id DESC";
+
+if(isset($_GET['download']) && $_GET['download'] == '1'){
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="data_siswa.csv"');
+    $downloadRes = mysqli_query($conn, $baseQuery);
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['NIS','Nama','Email','No Telp','Kelas','Username']);
+    while($row = mysqli_fetch_assoc($downloadRes)){
+        fputcsv($out, [$row['nis'],$row['nama_lengkap'],$row['email'],$row['no_telp'],$row['nama_kelas'],$row['username']]);
+    }
+    fclose($out);
+    exit();
+}
+
+$pagination = paginate_query($conn, $baseQuery, $page, 30);
+$data = $pagination['result'];
+?>
+
 <div class="card">
     <h2>Data Siswa</h2>
 
-    <a href="siswa_add.php" class="btn">+ Tambah Siswa</a>
-    <br><br>
+    <div class="table-toolbar">
+        <a href="siswa_add.php" class="btn">+ Tambah Siswa</a>
+        <form method="GET" style="display:flex;gap:8px;align-items:center;">
+            <input type="text" name="q" placeholder="Cari nama/NIS..." value="<?= htmlspecialchars($search); ?>">
+            <button type="submit" class="btn">Cari</button>
+        </form>
+        <a class="btn" href="siswa.php?download=1<?= $search ? '&q='.urlencode($search) : ''; ?>">Download Data</a>
+    </div>
 
     <table class="tabel">
         <tr>
@@ -59,18 +98,12 @@ if(isset($_GET['import'])){
             <th>Email</th>
             <th>No Telp</th>
             <th>Kelas</th>
+            <th>Username</th>
             <th>Aksi</th>
         </tr>
 
         <?php
-        $no = 1;
-
-        $data = mysqli_query($conn, 
-            "SELECT siswa.*, kelas.nama_kelas 
-             FROM siswa 
-             JOIN kelas ON siswa.id_kelas = kelas.id 
-             ORDER BY siswa.id DESC"
-        );
+        $no = $pagination['offset'] + 1;
 
         while($d = mysqli_fetch_assoc($data)){
         ?>
@@ -81,6 +114,7 @@ if(isset($_GET['import'])){
             <td><?= $d['email']; ?></td>
             <td><?= $d['no_telp']; ?></td>
             <td><?= $d['nama_kelas']; ?></td>
+            <td><?= $d['username']; ?></td>
             <td>
                 <a href="siswa_edit.php?id=<?= $d['id']; ?>">Edit</a> |
                 <a href="siswa_delete.php?id=<?= $d['id']; ?>" onclick="return confirm('Hapus siswa ini?')">Hapus</a>
@@ -88,6 +122,7 @@ if(isset($_GET['import'])){
         </tr>
         <?php } ?>
     </table>
+    <?= render_pagination('siswa.php', $pagination, $search ? ['q'=>$search] : []); ?>
 
 </div>
 

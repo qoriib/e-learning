@@ -8,7 +8,11 @@ if($_SESSION['role'] != 'admin'){
 include "../../config.php";
 
 $id = $_GET['id'];
-$d = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM guru WHERE id='$id'"));
+$d = mysqli_fetch_assoc(mysqli_query($conn,
+    "SELECT guru.*, users.username 
+     FROM guru 
+     LEFT JOIN users ON users.id_guru = guru.id
+     WHERE guru.id='$id'"));
 ?>
 
 <!DOCTYPE html>
@@ -41,6 +45,9 @@ $d = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM guru WHERE id='$id'")
 
         <label>No Telp</label>
         <input type="text" name="telp" value="<?= $d['no_telp']; ?>">
+
+        <label>Username</label>
+        <input type="text" name="username" value="<?= $d['username']; ?>" required>
 
         <button type="submit" class="btn">Update</button>
 

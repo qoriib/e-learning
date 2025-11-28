@@ -5,6 +5,7 @@ if($_SESSION['role'] != 'admin'){
     exit();
 }
 include "../../config.php";
+include "../../helpers/pagination_helper.php";
 ?>
 
 <!DOCTYPE html>
@@ -45,11 +46,48 @@ if(isset($_GET['import'])){
 </div>
 <?php endif; ?>
 
+<?php
+$search = trim($_GET['q'] ?? '');
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$where = "";
+if($search !== ''){
+    $like = mysqli_real_escape_string($conn, "%".$search."%");
+    $where = "WHERE guru.nama_lengkap LIKE '$like' OR guru.nip LIKE '$like'";
+}
+$baseQuery = "SELECT guru.*, users.username 
+              FROM guru 
+              LEFT JOIN users ON users.id_guru = guru.id 
+              $where 
+              ORDER BY guru.id DESC";
+
+if(isset($_GET['download']) && $_GET['download'] == '1'){
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="data_guru.csv"');
+    $downloadRes = mysqli_query($conn, $baseQuery);
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['NIP','Nama','Email','No Telp','Username']);
+    while($row = mysqli_fetch_assoc($downloadRes)){
+        fputcsv($out, [$row['nip'],$row['nama_lengkap'],$row['email'],$row['no_telp'],$row['username']]);
+    }
+    fclose($out);
+    exit();
+}
+
+$pagination = paginate_query($conn, $baseQuery, $page, 30);
+$data = $pagination['result'];
+?>
+
 <div class="card">
     <h2>Data Guru</h2>
 
-    <a href="guru_add.php" class="btn">+ Tambah Guru</a>
-    <br><br>
+    <div class="table-toolbar">
+        <a href="guru_add.php" class="btn">+ Tambah Guru</a>
+        <form method="GET" style="display:flex;gap:8px;align-items:center;">
+            <input type="text" name="q" placeholder="Cari nama/NIP..." value="<?= htmlspecialchars($search); ?>">
+            <button type="submit" class="btn">Cari</button>
+        </form>
+        <a class="btn" href="guru.php?download=1<?= $search ? '&q='.urlencode($search) : ''; ?>">Download Data</a>
+    </div>
 
     <table class="tabel">
         <tr>
@@ -58,12 +96,12 @@ if(isset($_GET['import'])){
             <th>Nama</th>
             <th>Email</th>
             <th>No Telp</th>
+            <th>Username</th>
             <th>Aksi</th>
         </tr>
 
         <?php
-        $no = 1;
-        $data = mysqli_query($conn, "SELECT * FROM guru ORDER BY id DESC");
+        $no = $pagination['offset'] + 1;
         while($d = mysqli_fetch_assoc($data)){
         ?>
         <tr>
@@ -72,6 +110,7 @@ if(isset($_GET['import'])){
             <td><?= $d['nama_lengkap']; ?></td>
             <td><?= $d['email']; ?></td>
             <td><?= $d['no_telp']; ?></td>
+            <td><?= $d['username']; ?></td>
             <td>
                 <a href="guru_edit.php?id=<?= $d['id']; ?>">Edit</a> |
                 <a href="guru_delete.php?id=<?= $d['id']; ?>" onclick="return confirm('Hapus guru ini?')">Hapus</a>
@@ -79,6 +118,7 @@ if(isset($_GET['import'])){
         </tr>
         <?php } ?>
     </table>
+    <?= render_pagination('guru.php', $pagination, $search ? ['q'=>$search] : []); ?>
 
 </div>
 

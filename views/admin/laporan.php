@@ -5,6 +5,9 @@ if($_SESSION['role'] != 'admin'){
     exit();
 }
 include "../../config.php";
+include "../../helpers/file_helper.php";
+include "../../helpers/pagination_helper.php";
+include "../../helpers/file_helper.php";
 ?>
 
 <!DOCTYPE html>
@@ -21,6 +24,15 @@ include "../../config.php";
 
 <div class="card">
 <h2>Daftar Laporan Guru</h2>
+<?php
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$baseQuery = "SELECT laporan.*, guru.nama_lengkap 
+ FROM laporan
+ JOIN guru ON laporan.id_guru = guru.id
+ ORDER BY laporan.id DESC";
+$pagination = paginate_query($conn, $baseQuery, $page, 30);
+$data = $pagination['result'];
+?>
 
 <table class="tabel">
     <tr>
@@ -34,21 +46,14 @@ include "../../config.php";
     </tr>
 
 <?php
-$no = 1;
-$data = mysqli_query($conn,
-"SELECT laporan.*, guru.nama_lengkap 
- FROM laporan
- JOIN guru ON laporan.id_guru = guru.id
- ORDER BY laporan.id DESC"
-);
-
+$no = $pagination['offset'] + 1;
 while($d = mysqli_fetch_assoc($data)){
 ?>
     <tr>
         <td><?= $no++; ?></td>
         <td><?= $d['nama_lengkap']; ?></td>
         <td><?= $d['judul_laporan']; ?></td>
-        <td><a href="../../<?= $d['file_path']; ?>" target="_blank">Download</a></td>
+        <td><a href="<?= view_file_href($d['file_path']); ?>" target="_blank">Download</a></td>
         <td><?= $d['status']; ?></td>
         <td><?= $d['tanggal_upload']; ?></td>
         <td>
@@ -61,6 +66,7 @@ while($d = mysqli_fetch_assoc($data)){
 <?php } ?>
 
 </table>
+<?= render_pagination('laporan.php', $pagination); ?>
 
 </div>
 </div>

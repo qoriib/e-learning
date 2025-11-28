@@ -26,13 +26,14 @@ if(!file_exists($folder)){
 // nama file unik
 $nama_file = time() . "_" . preg_replace("/[^A-Za-z0-9._-]/", "_", $_FILES['file_tugas']['name']);
 $path = $folder . $nama_file;
+$dbPath = "uploads/tugas_siswa/" . $nama_file;
 
 move_uploaded_file($_FILES['file_tugas']['tmp_name'], $path);
 
 // simpan ke DB
 mysqli_query($conn,
 "INSERT INTO pengumpulan_tugas (id_tugas, id_siswa, file_path)
- VALUES ('$id_tugas', '$id_siswa', '$path')");
+ VALUES ('$id_tugas', '$id_siswa', '$dbPath')");
 
 catat_log($conn, "Siswa upload tugas ID: $id_tugas");
 

@@ -40,14 +40,16 @@ $folder = "../../uploads/materi/";
 if(!is_dir($folder)){
     mkdir($folder, 0777, true);
 }
-$path = $folder . time() . "_" . preg_replace("/[^A-Za-z0-9._-]/", "_", $nama_file);
+$cleanName = time() . "_" . preg_replace("/[^A-Za-z0-9._-]/", "_", $nama_file);
+$fullPath = $folder . $cleanName;
+$dbPath = "uploads/materi/" . $cleanName;
 
 // upload file
-move_uploaded_file($tmp, $path);
+move_uploaded_file($tmp, $fullPath);
 
 mysqli_query($conn,
 "INSERT INTO materi (id_guru, id_mapel, judul_materi, deskripsi, file_path)
- VALUES ('$id_guru', '$id_mapel', '$judul', '$deskripsi', '$path')");
+ VALUES ('$id_guru', '$id_mapel', '$judul', '$deskripsi', '$dbPath')");
 $id_materi = mysqli_insert_id($conn);
 
 mysqli_query($conn,

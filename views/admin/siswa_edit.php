@@ -9,7 +9,10 @@ include "../../config.php";
 
 $id = $_GET['id'];
 $d = mysqli_fetch_assoc(mysqli_query($conn, 
-    "SELECT * FROM siswa WHERE id='$id'"
+    "SELECT siswa.*, users.username 
+     FROM siswa 
+     LEFT JOIN users ON users.id_siswa = siswa.id 
+     WHERE siswa.id='$id'"
 ));
 ?>
 
@@ -43,6 +46,9 @@ $d = mysqli_fetch_assoc(mysqli_query($conn,
 
         <label>No Telp</label>
         <input type="text" name="telp" value="<?= $d['no_telp']; ?>">
+
+        <label>Username</label>
+        <input type="text" name="username" value="<?= $d['username']; ?>" required>
 
         <label>Kelas</label>
         <select name="kelas">

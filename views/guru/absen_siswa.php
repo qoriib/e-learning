@@ -15,6 +15,7 @@ if(!$id_guru){
 }
 
 $tanggal = date("Y-m-d");
+$rekap_tanggal = isset($_GET['rekap_tanggal']) ? $_GET['rekap_tanggal'] : $tanggal;
 
 // ambil kelas dari GET (jika ada)
 $id_kelas = isset($_GET['kelas']) ? $_GET['kelas'] : "";
@@ -38,6 +39,7 @@ $id_kelas = isset($_GET['kelas']) ? $_GET['kelas'] : "";
     <div class="card">
         <form method="GET" action="absen_siswa.php">
             <label>Pilih Kelas</label>
+            <input type="hidden" name="rekap_tanggal" value="<?= $rekap_tanggal; ?>">
             <select name="kelas" onchange="this.form.submit()">
                 <option value="">-- Pilih Kelas --</option>
                 <?php
@@ -128,6 +130,49 @@ $id_kelas = isset($_GET['kelas']) ? $_GET['kelas'] : "";
             <button type="submit" class="btn">Simpan Absensi</button>
         </form>
 
+    </div>
+
+    <div class="card">
+        <h3>Rekap Riwayat Absensi Siswa</h3>
+        <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+            <input type="hidden" name="kelas" value="<?= $id_kelas; ?>">
+            <div>
+                <label>Tanggal</label>
+                <input type="date" name="rekap_tanggal" value="<?= $rekap_tanggal; ?>">
+            </div>
+            <button type="submit" class="btn">Tampilkan</button>
+        </form>
+        <table class="tabel">
+            <tr>
+                <th>No</th>
+                <th>NIS</th>
+                <th>Nama</th>
+                <th>Status</th>
+                <th>Keterangan</th>
+            </tr>
+            <?php
+            $rekapQuery = mysqli_query($conn,
+                "SELECT s.nis, s.nama_lengkap, a.status, a.keterangan
+                 FROM siswa s
+                 JOIN users u ON u.id_siswa = s.id
+                 LEFT JOIN absensi a
+                    ON a.id_user = u.id
+                   AND a.tanggal = '$rekap_tanggal'
+                   AND a.jenis_absen = 'siswa'
+                 WHERE s.id_kelas = '$id_kelas'
+                 ORDER BY s.nama_lengkap ASC");
+            $no = 1;
+            while($rekap = mysqli_fetch_assoc($rekapQuery)){
+            ?>
+            <tr>
+                <td><?= $no++; ?></td>
+                <td><?= $rekap['nis']; ?></td>
+                <td><?= $rekap['nama_lengkap']; ?></td>
+                <td><?= $rekap['status'] ?? '-'; ?></td>
+                <td><?= $rekap['keterangan'] ?? '-'; ?></td>
+            </tr>
+            <?php } ?>
+        </table>
     </div>
 
     <?php endif; ?>

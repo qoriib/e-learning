@@ -5,6 +5,7 @@ if($_SESSION['role'] != 'admin'){
     exit();
 }
 include "../../config.php";
+include "../../helpers/pagination_helper.php";
 ?>
 
 <!DOCTYPE html>
@@ -26,6 +27,18 @@ include "../../config.php";
     <a href="roster_add.php" class="btn">+ Tambah Jadwal</a>
     <br><br>
 
+    <?php
+    $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+    $baseQuery = "SELECT roster.*, kelas.nama_kelas, mapel.nama_mapel, guru.nama_lengkap 
+             FROM roster
+             JOIN kelas ON roster.id_kelas = kelas.id
+             JOIN mapel ON roster.id_mapel = mapel.id
+             JOIN guru ON roster.id_guru = guru.id
+             ORDER BY roster.hari, roster.jam_mulai";
+    $pagination = paginate_query($conn, $baseQuery, $page, 30);
+    $data = $pagination['result'];
+    ?>
+
     <table class="tabel">
         <tr>
             <th>No</th>
@@ -39,16 +52,7 @@ include "../../config.php";
         </tr>
 
         <?php
-        $no = 1;
-        $data = mysqli_query($conn,
-            "SELECT roster.*, kelas.nama_kelas, mapel.nama_mapel, guru.nama_lengkap 
-             FROM roster
-             JOIN kelas ON roster.id_kelas = kelas.id
-             JOIN mapel ON roster.id_mapel = mapel.id
-             JOIN guru ON roster.id_guru = guru.id
-             ORDER BY roster.hari, roster.jam_mulai"
-        );
-
+        $no = $pagination['offset'] + 1;
         while($d = mysqli_fetch_assoc($data)){
         ?>
         <tr>
@@ -67,6 +71,7 @@ include "../../config.php";
         <?php } ?>
 
     </table>
+    <?= render_pagination('roster.php', $pagination); ?>
 
 </div>
 

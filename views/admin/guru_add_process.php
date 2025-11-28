@@ -7,6 +7,7 @@ $nip = $_POST['nip'];
 $nama = $_POST['nama'];
 $email = $_POST['email'];
 $telp = $_POST['telp'];
+$usernameInput = trim($_POST['username']);
 
 // simpan ke tabel guru
 mysqli_query($conn, "INSERT INTO guru (nip, nama_lengkap, email, no_telp)
@@ -16,7 +17,7 @@ VALUES ('$nip', '$nama', '$email', '$telp')");
 $id_guru = mysqli_insert_id($conn);
 
 // BUAT AKUN LOGIN KE TABEL USERS
-$username = $nip; // username = NIP
+$username = $usernameInput !== '' ? $usernameInput : $nip;
 $password = password_hash("password123", PASSWORD_DEFAULT); // default password
 
 mysqli_query($conn, "INSERT INTO users (username, password, role, id_guru)

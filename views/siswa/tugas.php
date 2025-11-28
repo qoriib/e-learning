@@ -7,6 +7,8 @@ if($_SESSION['role'] != 'siswa'){
 
 include "../../config.php";
 include "../../helpers/auth_helper.php";
+include "../../helpers/pagination_helper.php";
+include "../../helpers/file_helper.php";
 
 $id_user = $_SESSION['id'];
 $id_siswa = getSiswaId($conn);
@@ -44,6 +46,18 @@ $id_kelas = $siswa['id_kelas'];
 
 <div class="card">
 
+<?php
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$baseQuery = "SELECT tugas.*, mapel.nama_mapel, guru.nama_lengkap
+ FROM tugas
+ JOIN mapel ON tugas.id_mapel = mapel.id
+ JOIN guru ON tugas.id_guru = guru.id
+ WHERE tugas.id_kelas='$id_kelas'
+ ORDER BY tugas.deadline ASC";
+$pagination = paginate_query($conn, $baseQuery, $page, 30);
+$q = $pagination['result'];
+?>
+
 <table class="tabel">
     <tr>
         <th>No</th>
@@ -56,16 +70,7 @@ $id_kelas = $siswa['id_kelas'];
     </tr>
 
 <?php
-$no = 1;
-
-$q = mysqli_query($conn,
-"SELECT tugas.*, mapel.nama_mapel, guru.nama_lengkap
- FROM tugas
- JOIN mapel ON tugas.id_mapel = mapel.id
- JOIN guru ON tugas.id_guru = guru.id
- WHERE tugas.id_kelas='$id_kelas'
- ORDER BY tugas.deadline ASC"
-);
+$no = $pagination['offset'] + 1;
 
 while($d = mysqli_fetch_assoc($q)){
 
@@ -76,6 +81,7 @@ while($d = mysqli_fetch_assoc($q)){
        AND id_siswa='".$siswa['id']."'");
 
     $sudah = mysqli_num_rows($cek) > 0;
+$downloadPath = $d['file_path'] ? view_file_href($d['file_path']) : null;
 ?>
 <tr>
     <td><?= $no++; ?></td>
@@ -85,8 +91,8 @@ while($d = mysqli_fetch_assoc($q)){
     <td><?= $d['deadline']; ?></td>
 
     <td>
-        <?php if($d['file_path']){ ?>
-            <a href="<?= $d['file_path']; ?>" target="_blank">Download</a>
+        <?php if($downloadPath){ ?>
+            <a href="<?= $downloadPath; ?>" target="_blank">Download</a>
         <?php } else { echo "-"; } ?>
     </td>
 
@@ -101,6 +107,7 @@ while($d = mysqli_fetch_assoc($q)){
 <?php } ?>
 
 </table>
+<?= render_pagination('tugas.php', $pagination); ?>
 
 </div>
 </div>

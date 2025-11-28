@@ -5,6 +5,7 @@ if($_SESSION['role'] != 'admin'){
     exit();
 }
 include "../../config.php";
+include "../../helpers/pagination_helper.php";
 ?>
 
 <!DOCTYPE html>
@@ -51,6 +52,12 @@ if(isset($_GET['import'])){
 
     <a href="mapel_add.php" class="btn">+ Tambah Mapel</a>
     <br><br>
+    <?php
+    $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+    $baseQuery = "SELECT * FROM mapel ORDER BY id DESC";
+    $pagination = paginate_query($conn, $baseQuery, $page, 30);
+    $data = $pagination['result'];
+    ?>
 
     <table class="tabel">
         <tr>
@@ -60,8 +67,7 @@ if(isset($_GET['import'])){
         </tr>
 
         <?php
-        $no = 1;
-        $data = mysqli_query($conn, "SELECT * FROM mapel ORDER BY id DESC");
+        $no = $pagination['offset'] + 1;
         while($d = mysqli_fetch_assoc($data)){
         ?>
         <tr>
@@ -74,6 +80,7 @@ if(isset($_GET['import'])){
         </tr>
         <?php } ?>
     </table>
+    <?= render_pagination('mapel.php', $pagination); ?>
 
 </div>
 

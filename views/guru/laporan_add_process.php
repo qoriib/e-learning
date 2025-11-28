@@ -18,14 +18,16 @@ $folder = "../../uploads/laporan/";
 if(!is_dir($folder)){
     mkdir($folder, 0777, true);
 }
-$path = $folder . time() . "_" . preg_replace("/[^A-Za-z0-9._-]/", "_", $nama_file);
+$cleanName = time() . "_" . preg_replace("/[^A-Za-z0-9._-]/", "_", $nama_file);
+$path = $folder . $cleanName;
+$dbPath = "uploads/laporan/" . $cleanName;
 
 // upload file
 move_uploaded_file($lokasi, $path);
 
 // simpan ke database
 mysqli_query($conn, "INSERT INTO laporan (id_guru, judul_laporan, file_path)
-VALUES ('$id_guru', '$judul', '$path')");
+VALUES ('$id_guru', '$judul', '$dbPath')");
 
 // CATAT LOG AKTIVITAS GURU
 catat_log($conn, "Guru mengupload laporan: $judul");

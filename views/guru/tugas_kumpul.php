@@ -7,6 +7,8 @@ if($_SESSION['role'] != 'guru'){
 
 include "../../config.php";
 include "../../helpers/auth_helper.php";
+include "../../helpers/file_helper.php";
+include "../../helpers/pagination_helper.php";
 
 $id_guru = getGuruId($conn);
 if(!$id_guru){
@@ -31,12 +33,14 @@ if(!$tugas){
     exit();
 }
 
-$submissions = mysqli_query($conn,
-"SELECT pengumpulan_tugas.*, siswa.nis, siswa.nama_lengkap
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$baseQuery = "SELECT pengumpulan_tugas.*, siswa.nis, siswa.nama_lengkap
  FROM pengumpulan_tugas
  JOIN siswa ON pengumpulan_tugas.id_siswa = siswa.id
  WHERE pengumpulan_tugas.id_tugas = '$id_tugas'
- ORDER BY pengumpulan_tugas.tanggal_kumpul DESC");
+ ORDER BY pengumpulan_tugas.tanggal_kumpul DESC";
+$pagination = paginate_query($conn, $baseQuery, $page, 30);
+$submissions = $pagination['result'];
 ?>
 
 <!DOCTYPE html>
@@ -76,12 +80,12 @@ $submissions = mysqli_query($conn,
         <tr>
             <td colspan="7" style="text-align:center;">Belum ada pengumpulan.</td>
         </tr>
-        <?php else: $no=1; while($row = mysqli_fetch_assoc($submissions)){ ?>
+        <?php else: $no=$pagination['offset']+1; while($row = mysqli_fetch_assoc($submissions)){ ?>
         <tr>
             <td><?= $no++; ?></td>
             <td><?= $row['nis']; ?></td>
             <td><?= $row['nama_lengkap']; ?></td>
-            <td><a href="../../<?= $row['file_path']; ?>" target="_blank">Download</a></td>
+            <td><a href="<?= view_file_href($row['file_path']); ?>" target="_blank">Download</a></td>
             <td><?= $row['nilai'] !== null ? $row['nilai'] : '-'; ?></td>
             <td><?= $row['catatan_nilai'] ? $row['catatan_nilai'] : '-'; ?></td>
             <td>
@@ -96,6 +100,7 @@ $submissions = mysqli_query($conn,
         </tr>
         <?php } endif; ?>
     </table>
+    <?= render_pagination('tugas_kumpul.php', $pagination, ['id'=>$id_tugas]); ?>
 </div>
 
 <a href="tugas.php" class="btn">Kembali</a>

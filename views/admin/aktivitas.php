@@ -6,6 +6,7 @@ if($_SESSION['role'] != 'admin'){
 }
 
 include "../../config.php";
+include "../../helpers/pagination_helper.php";
 ?>
 
 <!DOCTYPE html>
@@ -22,7 +23,15 @@ include "../../config.php";
 
 <div class="card">
     <h2>Log Aktivitas User</h2>
-
+    <?php
+    $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+    $baseQuery = "SELECT log_aktivitas.*, users.username
+         FROM log_aktivitas
+         LEFT JOIN users ON users.id = log_aktivitas.id_user
+         ORDER BY log_aktivitas.id DESC";
+    $pagination = paginate_query($conn, $baseQuery, $page, 30);
+    $logs = $pagination['result'];
+    ?>
     <table class="tabel">
         <tr>
             <th>Waktu</th>
@@ -31,12 +40,6 @@ include "../../config.php";
             <th>Aktivitas</th>
         </tr>
         <?php
-        $logs = mysqli_query($conn,
-        "SELECT log_aktivitas.*, users.username
-         FROM log_aktivitas
-         LEFT JOIN users ON users.id = log_aktivitas.id_user
-         ORDER BY log_aktivitas.id DESC");
-
         while($l = mysqli_fetch_assoc($logs)){
         ?>
         <tr>
@@ -47,6 +50,7 @@ include "../../config.php";
         </tr>
         <?php } ?>
     </table>
+    <?= render_pagination('aktivitas.php', $pagination); ?>
 </div>
 
 </div>

@@ -7,6 +7,8 @@ if($_SESSION['role'] != 'siswa'){
 
 include "../../config.php";
 include "../../helpers/auth_helper.php";
+include "../../helpers/file_helper.php";
+include "../../helpers/pagination_helper.php";
 
 $id_user = $_SESSION['id'];
 $id_siswa = getSiswaId($conn);
@@ -44,6 +46,19 @@ $id_kelas = $siswa['id_kelas'];
 
 <div class="card">
 
+<?php
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$baseQuery = "SELECT materi.*, mapel.nama_mapel, guru.nama_lengkap
+ FROM materi
+ JOIN mapel ON materi.id_mapel = mapel.id
+ JOIN guru ON materi.id_guru = guru.id
+ JOIN materi_kelas ON materi_kelas.id_materi = materi.id
+ WHERE materi_kelas.id_kelas = '$id_kelas'
+ ORDER BY materi.tanggal_upload DESC";
+$pagination = paginate_query($conn, $baseQuery, $page, 30);
+$q2 = $pagination['result'];
+?>
+
 <table class="tabel">
     <tr>
         <th>No</th>
@@ -56,17 +71,7 @@ $id_kelas = $siswa['id_kelas'];
     </tr>
 
 <?php
-$no = 1;
-
-// Query materi sesuai kelas siswa
-$q2 = mysqli_query($conn,
-"SELECT materi.*, mapel.nama_mapel, guru.nama_lengkap
- FROM materi
- JOIN mapel ON materi.id_mapel = mapel.id
- JOIN guru ON materi.id_guru = guru.id
- JOIN materi_kelas ON materi_kelas.id_materi = materi.id
- WHERE materi_kelas.id_kelas = '$id_kelas'
- ORDER BY materi.tanggal_upload DESC");
+$no = $pagination['offset'] + 1;
 
 while($d = mysqli_fetch_assoc($q2)){
 ?>
@@ -77,13 +82,14 @@ while($d = mysqli_fetch_assoc($q2)){
     <td><?= $d['judul_materi']; ?></td>
     <td><?= $d['deskripsi'] ? $d['deskripsi'] : "-"; ?></td>
     <td>
-        <a href="<?= $d['file_path']; ?>" target="_blank">Download</a>
+        <a href="<?= view_file_href($d['file_path']); ?>" target="_blank">Download</a>
     </td>
     <td><?= $d['tanggal_upload']; ?></td>
 </tr>
 <?php } ?>
 
 </table>
+<?= render_pagination('materi.php', $pagination); ?>
 
 </div>
 

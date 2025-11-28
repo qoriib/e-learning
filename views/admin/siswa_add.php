@@ -37,6 +37,9 @@ include "../../config.php";
         <label>No Telp</label>
         <input type="text" name="telp">
 
+        <label>Username</label>
+        <input type="text" name="username" required>
+
         <label>Kelas</label>
         <select name="kelas" required>
             <option value="">-- Pilih Kelas --</option>

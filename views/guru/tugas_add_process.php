@@ -36,9 +36,10 @@ if(!empty($_FILES['file']['name'])){
     $tmp = $_FILES['file']['tmp_name'];
     $folder = "../../uploads/tugas/";
     if(!is_dir($folder)) mkdir($folder, 0777, true);
-    $clean_name = preg_replace("/[^A-Za-z0-9._-]/", "_", $nama_file);
-    $file_path = $folder . time() . "_" . $clean_name;
-    move_uploaded_file($tmp, $file_path);
+    $clean_name = time() . "_" . preg_replace("/[^A-Za-z0-9._-]/", "_", $nama_file);
+    $full_path = $folder . $clean_name;
+    move_uploaded_file($tmp, $full_path);
+    $file_path = "uploads/tugas/" . $clean_name;
 }
 
 mysqli_query($conn,

@@ -36,6 +36,9 @@ if($_SESSION['role'] != 'admin'){
         <label>No Telp</label>
         <input type="text" name="telp">
 
+        <label>Username</label>
+        <input type="text" name="username" required>
+
         <button type="submit" class="btn">Simpan</button>
     </form>
 
